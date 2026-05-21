@@ -9,13 +9,12 @@
 
 **ValVic** es un ecosistema SaaS multi-tenant de automatización conversacional y CRM diseñado específicamente para Pymes y Clínicas de Servicios (como clínicas veterinarias, consultorios médicos, y agencias de servicios) en Chile. 
 
-El producto resuelve el problema crítico de la **pérdida de oportunidades comerciales y eficiencia operativa** debido a llamadas no contestadas o chats de WhatsApp desatendidos durante consultas o fuera del horario laboral.
+El producto resuelve la **pérdida de oportunidades comerciales y la ineficiencia operativa** mediante un embudo automático de adquisición y conversión B2B basado en agentes de inteligencia artificial y orquestación avanzada.
 
-### Propuesta de Valor:
-* **Agente de Citas Inteligente 24/7 ("Vicky"):** Permite que los dueños de mascotas o pacientes agenden citas de forma autónoma a través de WhatsApp e Instagram, simulando un flujo conversacional humano adaptado al tono del negocio.
-* **Confirmación y Recordatorios Automatizados:** Reduce la tasa de inasistencia (no-show) mediante notificaciones predictivas enlazadas a la agenda.
-* **CRM Interno Unificado (Next.js 15):** Permite a los operadores humanos supervisar las conversaciones, intervenir en tiempo real (co-pilotaje) y gestionar el pipeline de ventas a través del "Botón Dorado" (habilitación instantánea de módulos de prospección, ventas y reservas).
-* **Integraciones y Atribución:** Captura automáticamente leads desde Google Maps y web scraping local, y permite despachar eventos operacionales hacia webhooks externos del cliente.
+### Ecosistema de Agentes Core:
+* **Agente Prospector B2B (Outbound):** Captura de forma proactiva leads de negocios locales, audita su presencia digital y redacta mensajes de apertura hiper-personalizados para iniciar campañas de prospección en frío.
+* **Agente Vendedor ("Vicky" - Inbound):** Atiende consultas, maneja objeciones típicas de la industria, aplica una estrategia de precios y negociación estructurada, y realiza el cierre de ventas guiando al prospecto hasta la señal de pago.
+* **CRM Multitenant Integrado (Next.js 15):** Permite a los operadores humanos monitorear las interacciones de los agentes, tomar control de los chats en tiempo real (co-pilotaje) y configurar los módulos de automatización a través de flags globales ("Botón Dorado").
 
 ---
 
@@ -40,7 +39,34 @@ Para garantizar la máxima velocidad de respuesta, un bajo costo operativo y un 
 
 ---
 
-## 3. Ciclo de Vida del Desarrollo (SDLC)
+## 3. Ecosistema de Agentes B2B y Embudo de Captación (CrewAI & LangGraph)
+
+El valor estratégico de ValVic radica en su capacidad de automatizar el ciclo comercial completo: desde la captación en frío hasta el cierre del pago y registro en el CRM.
+
+### A. Captación Fría (Agente Prospector)
+Ubicado en [prospector.py](file:///d:/Usuarios/V%C3%ADctor/Documentos/ValVic/backend/scripts/prospector.py) y orquestado de manera multi-vertical (veterinarias, estética, dental, etc.), este agente realiza las siguientes fases en segundo plano:
+1. **Lead Sourcing Automático (Google Places API v1):** Realiza búsquedas geo-localizadas en Chile obteniendo el nombre del negocio, dirección, valoración (estrellas), cantidad de reseñas, sitio web y teléfono nacional en un único request de red. Si no se provee API Key, implementa un fallback generador con Claude Haiku.
+2. **Auditoría Web y Calificación Inteligente:** Evalúa el nivel de digitalización del prospecto (`sin_web`, `web_basica`, `web_buena`) y su volumen de reseñas en Google Maps para asignarle una puntuación de idoneidad comercial (escala de 1 a 10).
+3. **Copywriting Conversacional B2B:** Si el prospecto califica con puntaje $\ge 5$, el agente redacta un mensaje de apertura por WhatsApp enfocado en el dolor típico del rubro (ej. llamadas perdidas durante consultas en veterinarias) terminando con una pregunta cerrada (sí/no), evitando sonar corporativo.
+4. **Modos de Envío Flexibles:**
+   * **Modo Meta API:** Envío automático masivo usando plantillas homologadas por WhatsApp Business.
+   * **Modo Click-to-Chat (wa.me):** Genera enlaces directos de WhatsApp pre-rellenados. A través de la CLI `python prospector.py --solo-revisar`, un operador humano puede auditar el mensaje generado, hacer clic y abrir la conversación directamente en su WhatsApp Web en un segundo, protegiendo costos y mitigando bloqueos.
+
+### B. Conversión, Negociación y Cierre de Pago (Agente Vendedor - Vicky)
+Ubicado en [vendedor.py](file:///d:/Usuarios/V%C3%ADctor/Documentos/ValVic/backend/api/crews/vendedor.py) e inyectado con prompts avanzados de [ventas.py](file:///d:/Usuarios/V%C3%ADctor/Documentos/ValVic/backend/prompts/ventas.py), Vicky actúa cuando el prospecto responde por WhatsApp:
+1. **Ruteo Condicional en LangGraph (`route_after_guard`):** Si el intent clasificado no es peligroso y el flag del tenant `sales_active` está activado, la conversación se delega inmediatamente al nodo de `sales_crew`.
+2. **Escalera de Concesiones:** Para proteger el margen de ganancia de ValVic, el agente maneja las objeciones de precio de forma secuencial y restrictiva, sin revelar nunca su lógica interna:
+   * *Techo (Precios de Lista):* Ofrece el precio configurado del servicio como punto de partida.
+   * *Concesión 1 (Descuento en Onboarding):* Rebaja leve porcentual en la implementación ante la primera objeción.
+   * *Concesión 2 (Flujo de Caja):* División del pago en hitos (mitad al inicio, mitad al entregar el sistema).
+   * *Concesión 3 (Descuento temporal):* Reducción en la mensualidad durante los primeros meses.
+   * *Piso Absoluto:* Existe un piso de precio pre-configurado infranqueable. Si el prospecto presiona por debajo de dicho piso, Vicky detiene la negociación autónoma y escala la conversación a un ejecutivo humano para proteger el LTV (Life-Time Value).
+3. **Cierre hasta la Señal de Pago:** Al concretarse el interés por un servicio, Vicky empuja activamente a la conversión solicitando el abono inicial: *"Para reservar la fecha de implementación, requerimos una señal de inicio — ¿prefieres transferencia o link de pago?"*.
+4. **CRM Sync:** Al finalizar el flujo, se actualiza el pipeline en base de datos registrando el scoring del lead, el estado de la oportunidad y el historial de tokens consumidos.
+
+---
+
+## 4. Ciclo de Vida del Desarrollo (SDLC)
 
 El desarrollo del núcleo conversacional de ValVic se optimizó exponencialmente mediante el uso estructurado de **Cursor** y metodologías ágiles de orquestación de LLMs, logrando un **time-to-market inferior a 5 días** para módulos clave de negocio.
 
@@ -54,7 +80,7 @@ El desarrollo del núcleo conversacional de ValVic se optimizó exponencialmente
 
 ---
 
-## 4. Ecosistema Cloud (OCI Always Free + Claude)
+## 5. Ecosistema Cloud (OCI Always Free + Claude)
 
 ValVic aprovecha al máximo la ingeniería de costos eficientes mediante la infraestructura siempre gratuita de Oracle Cloud y una orquestación resiliente de modelos de lenguaje avanzados.
 
@@ -67,7 +93,7 @@ ValVic aprovecha al máximo la ingeniería de costos eficientes mediante la infr
 
 ---
 
-## 5. Diagrama de Secuencia de Datos (End-to-End)
+## 6. Diagrama de Secuencia de Datos (End-to-End)
 
 El siguiente diagrama detalla cómo fluyen los datos y las decisiones de diseño arquitectónico desde el dispositivo del cliente hasta los proveedores de IA y la base de datos en OCI:
 
@@ -81,6 +107,7 @@ sequenceDiagram
     participant API as FastAPI (Server App)
     participant DB as Oracle Database 23ai
     end
+    participant Crew as Agentes CrewAI (V Vicky / Prospector)
     participant Anthropic as Anthropic Claude / Gemini
 
     Cliente->>Meta: Envía mensaje de WhatsApp
@@ -97,29 +124,31 @@ sequenceDiagram
     
     Nginx-->>Meta: Respuesta exitosa (Meta detiene reintentos)
     
-    Note over API: Procesamiento Asíncrono en Background
+    Note over API: Procesamiento Asíncrono en Background (LangGraph)
 
     rect rgb(240, 230, 255)
-        Note over API, DB: Orquestación del Grafo LangGraph:<br/>1. Ingesta del mensaje<br/>2. Carga de Flags (Botón Dorado)<br/>3. Recuperación de Memoria Histórica
-        API->>DB: Carga historial de chat y flags de suscripción
+        Note over API, DB: Carga de Estado y Memoria:<br/>1. Ingesta del mensaje<br/>2. Carga de Flags (Botón Dorado)<br/>3. Recuperación de Memoria Histórica
+        API->>DB: Carga historial de chat y flags de suscripción (prospector_active, sales_active)
         DB-->>API: Historial (mensajes) + flags activos
     end
 
-    rect rgb(230, 255, 230)
-        Note over API, Anthropic: LLMManager Fallback Chain:<br/>Intenta Gemini. Si falla o requiere<br/>precisión extrema (Ventas/Booking),<br/>llama a Claude via Anthropic API (HTTPS TLS 1.3).
-        API->>Anthropic: Solicita generación de respuesta (System Prompt Vicky + Contexto)
-        Anthropic-->>API: Retorna texto generado + uso de tokens
+    rect rgb(255, 240, 240)
+        Note over API, Crew: Ruteador Condicional y Ejecución de Agentes:<br/>Si is_outbound -> Node prospector_crew<br/>Si es inbound + consulta/precio -> Node sales_crew (V Vicky)
+        API->>Crew: Ejecuta Crew correspondiente (CrewAI)
+        Crew->>Anthropic: Genera respuesta (con escalera de precios y objeciones)
+        Anthropic-->>Crew: Retorna texto generado
+        Crew-->>API: Retorna respuesta estructurada con control de precios
     end
 
     rect rgb(255, 245, 230)
-        Note over API, DB: Persistencia de Estado:<br/>Guarda mensaje enviado,<br/>checkpoints del grafo e historial de tokens.
+        Note over API, DB: Lead Scoring & Persistencia:<br/>1. Puntuación automática de leads<br/>2. Registro del historial de tokens y estado del pipeline en el CRM
         API->>DB: Registra respuesta en base de datos e incrementa consumo
         DB-->>API: Confirmación de guardado
     end
 
     API->>Meta: POST /messages (Payload de WhatsApp con el texto del bot)
     Meta-->>API: 200 OK (Envío exitoso)
-    Meta->>Cliente: Entrega respuesta de WhatsApp
+    Meta->>Cliente: Entrega respuesta de WhatsApp (Concesión / Solicitud de Pago)
 ```
 
 ---

@@ -49,10 +49,11 @@ El backend y la capa de datos de ValVic operan íntegramente bajo la capa de ser
 
 ## 2. Persistencia y Almacenamiento de Datos
 
-La persistencia se encuentra estrictamente desacoplada del código funcional, garantizando consistencia relacional y capacidades de IA vectorial en el mismo motor.
+La persistencia se encuentra estrictamente desacoplada del código funcional, garantizando consistencia relacional, almacenamiento de estados de conversación y capacidades de IA vectorial en el mismo motor.
 
 * **Oracle Database 23ai (Free Tier):**
-   * **Rol:** Motor relacional multi-tenant principal. Almacena catálogos de servicios, registros de tenants, perfiles de pacientes, oportunidades de negocio (pipeline de ventas) y bitácoras de auditoría de tokens.
+   * **Rol:** Motor relacional multi-tenant principal. Almacena catálogos de servicios, registros de tenants, perfiles de pacientes y clientes, así como la base de leads y oportunidades del embudo comercial (pipeline de prospección y ventas).
+   * **Esquema de Embudo Comercial (Leads & CRM):** Almacena el historial y estado de cada oportunidad (`nuevo`, `mensaje_listo`, `contactado`, `interesado`, `cierre_senal`, `pago_confirmado`) junto con el mensaje personalizado generado por el Agente Prospector y la bitácora de ofertas de Vicky.
    * **AI Vector Search:** Almacena los embeddings vectoriales de la base de conocimiento clínica (en la tabla `knowledge_base`) para realizar búsquedas semánticas nativas a gran velocidad y recuperar contexto relevante antes de llamar al LLM.
    * **LangGraph Checkpoints:** Almacena el estado persistente de los grafos conversacionales en la base de datos relacional, permitiendo reanudar o auditar conversaciones en cualquier paso.
 * **Fallback de Desarrollo (SQLite Local):**
@@ -77,8 +78,10 @@ La seguridad perimetral de ValVic se implementa de manera defensiva en múltiple
 * **Manejo de Secretos:**  
   Las llaves de API (`ANTHROPIC_API_KEY`, `GOOGLE_AI_API_KEY`) nunca se escriben en el sistema de archivos del monorepo público ni se registran en los logs. Se almacenan únicamente en el archivo `.env` del servidor de producción, el cual está excluido de git por política estricta de `.gitignore`.
 
-### C. Resiliencia de Operación y Copias de Seguridad (Backups):
+### C. Resiliencia de Operación, Tareas de Fondo y Backups:
 * **Tolerancia a Fallos de LLM (Failover Chain):**  
   El software detecta de forma autónoma errores de timeout, cuotas o caídas de los proveedores de LLM. La llamada es reintentada instantáneamente sobre el proveedor de respaldo (de Gemini a Claude, o viceversa) siguiendo la cadena de failover registrada en el componente de gestión de prompts.
+* **Ejecución Programada de Prospección (Jobs/Cron):**  
+  Las campañas de captación outbound del Agente Prospector se ejecutan en segundo plano mediante tareas programadas (Jobs/Cron). El sistema valida los flags de suscripción activos (`prospector_active`) de cada tenant antes de iniciar el scraping y la pre-calificación masiva para garantizar el aislamiento SaaS.
 * **Copias de Respaldo Automatizadas:**  
   Un proceso en segundo plano programado mediante `cron` ejecuta un volcado de base de datos a las 03:00 AM diariamente. El archivo comprimido resultante es enviado y almacenado en un bucket privado de **Oracle Object Storage** con encriptación en reposo, garantizando un Punto de Recuperación Objetivo (RPO) inferior a 24 horas.
