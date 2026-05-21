@@ -18,9 +18,9 @@ El producto resuelve la **pérdida de oportunidades comerciales y la ineficienci
 
 ---
 
-## 2. Decisiones de Arquitectura (Patrón Antigravity)
+## 2. Decisiones de Arquitectura (Patrón de Desacoplamiento Asíncrono)
 
-Para garantizar la máxima velocidad de respuesta, un bajo costo operativo y un desacoplamiento absoluto de los módulos del sistema, implementamos el **Patrón Antigravity** de desarrollo ágil:
+Para garantizar la máxima velocidad de respuesta, un bajo costo operativo y un desacoplamiento absoluto de los módulos del sistema, implementamos un **Patrón de Desacoplamiento Asíncrono (Fire-and-Forget)**:
 
 ```
 [Cliente WhatsApp] ──(Payload JSON)──> [Meta Cloud API] ──(JSON)──> [Nginx / FastAPI]
@@ -116,7 +116,7 @@ sequenceDiagram
     Nginx->>API: Proxy local del Request JSON
 
     rect rgb(230, 240, 255)
-        Note over API: DECISIÓN ANTIGRAVITY:<br/>Validación rápida HMAC SHA-256.<br/>Resolución de tenant_id en BD.<br/>Lanzamiento de BackgroundTask.
+        Note over API: DECISIÓN DE DESACOPLAMIENTO:<br/>Validación rápida HMAC SHA-256.<br/>Resolución de tenant_id en BD.<br/>Lanzamiento de BackgroundTask.
         API->>DB: Resuelve tenant desde meta_page_id
         DB-->>API: Retorna tenant_id activo
         API-->>Nginx: 200 OK (inmediato en <100ms)
