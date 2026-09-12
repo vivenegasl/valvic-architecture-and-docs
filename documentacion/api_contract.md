@@ -1,37 +1,36 @@
-# Contrato API REST y Webhooks (Extracto Público)
+# Contrato API REST y Webhooks (Extracto OpenAPI v3.0.3)
 
-Este documento detalla la especificación pública de la interfaz de programación (API) de ValVic. Los esquemas y endpoints se definen utilizando el estándar **OpenAPI v3.0.0**.
+> **Especificación Técnica de Endpoints, Modelos de Datos y Protocolos de Integración.**  
+> *Versión 2.0 — ValVic Backend Engine.*
 
 ---
 
 ## Especificación OpenAPI (YAML)
 
-A continuación se presenta el contrato formal que define la comunicación entre clientes externos (Meta Cloud API, Panel CRM) y el servidor backend en Oracle Cloud.
+A continuación se presenta el contrato formal que define la comunicación entre clientes externos (Meta Cloud API, CRM Next.js 15, Portal Paciente, Client Factory) y el servidor backend en Oracle Cloud.
 
 ```yaml
 openapi: 3.0.3
 info:
-  title: ValVic API
+  title: ValVic Multi-Tenant API
   description: >-
-    API del backend unificado de ValVic para la gestión conversacional y el 
-    agendamiento automático impulsado por IA (Vicky). Implementa soporte 
-    multi-tenant con aislamiento estricto y comunicación asíncrona.
+    API del backend unificado de ValVic para la gestión conversacional, 
+    agendamiento médico/veterinario inteligente impulsado por Google ADK (Val),
+    pipeline comercial de oportunidades y administración SaaS multi-tenant.
   version: 2.0.0
 servers:
   - url: https://api.valvic.cl
     description: Servidor de Producción (OCI Ampere A1 VM)
-  - url: https://api-staging.valvic.cl
-    description: Servidor de Staging (Pruebas)
-  - url: http://localhost:8001
+  - url: http://localhost:8000
     description: Entorno de Desarrollo Local
 paths:
+  # ==========================================
+  # WEBHOOKS META (WhatsApp / Instagram)
+  # ==========================================
   /webhook/whatsapp:
     get:
-      summary: Verificación del Webhook de Meta (WhatsApp)
-      description: >-
-        Punto de entrada utilizado por Meta Cloud API para validar la propiedad 
-        del webhook de forma segura durante la configuración. Requiere un token de
-        verificación que coincida con el configurado en el servidor backend.
+      summary: Verificación del Webhook de Meta
+      description: Valida el token de verificación emitido por Meta for Developers.
       parameters:
         - name: hub.mode
           in: query
@@ -53,31 +52,25 @@ paths:
             example: "1158201484"
       responses:
         '200':
-          description: Verificación exitosa. Retorna el valor exacto de `hub.challenge`.
+          description: Verificación exitosa. Retorna el valor exacto de hub.challenge.
           content:
             text/plain:
               schema:
                 type: string
                 example: "1158201484"
         '403':
-          description: Fallo en la verificación del token.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
+          description: Token inválido.
 
     post:
-      summary: Recepción de Mensajes de Meta (WhatsApp / Inbound)
-      description: >-
-        Recibe notificaciones de eventos en tiempo real desde la plataforma de Meta.
-        Valida que el origen sea legítimo comprobando la firma digital en el header.
-        Procesa el mensaje en segundo plano para evitar time-outs.
-      headers:
-        X-Hub-Signature-256:
+      summary: Recepción de Mensajes Entrantes de WhatsApp
+      description: Recibe payloads JSON de WhatsApp. Valida firma HMAC-SHA256 y encola en sys_webhook_queue.
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: true
           schema:
             type: string
-          required: true
-          description: Firma HMAC-SHA256 del payload utilizando la clave secreta de la App de Meta.
+            example: "sha256=d3b07384d1134956a5dbe1c482597750..."
       requestBody:
         required: true
         content:
@@ -86,7 +79,7 @@ paths:
               $ref: '#/components/schemas/MetaWebhookPayload'
       responses:
         '200':
-          description: Webhook recibido de manera conforme y encolado en segundo plano.
+          description: Payload encolado exitosamente. Retorna de inmediato en <50ms.
           content:
             application/json:
               schema:
@@ -95,17 +88,16 @@ paths:
                   status:
                     type: string
                     example: ok
-        '400':
-          description: Estructura JSON inválida o malformada.
         '403':
-          description: Firma digital ausente o incorrecta.
-        '500':
-          description: Error interno del sistema.
+          description: Firma digital ausente o no coincide con META_APP_SECRET.
 
+  # ==========================================
+  # BANDERAS DE SUSCRIPCIÓN (BOTÓN DORADO)
+  # ==========================================
   /api/v1/tenants/{tenant_id}/subscription-flags:
     get:
-      summary: Consultar Banderas de Suscripción (Botón Dorado)
-      description: Obtiene el estado actual de los módulos de IA habilitados para el tenant.
+      summary: Consultar Banderas de Suscripción del Tenant
+      description: Obtiene los flags de activación de IA (prospección, ventas, agendamiento).
       security:
         - BearerAuth: []
       parameters:
@@ -115,24 +107,17 @@ paths:
           schema:
             type: string
             format: uuid
-            example: d3b07384-d113-4956-a5db-e1c482597750
       responses:
         '200':
-          description: Banderas de suscripción recuperadas con éxito.
+          description: Banderas de suscripción actuales.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubscriptionFlagsResponse'
-        '401':
-          description: Token de autenticación inválido o ausente.
-        '403':
-          description: El usuario autenticado no pertenece al tenant solicitado.
-        '404':
-          description: Tenant no encontrado.
 
     patch:
-      summary: Modificar Banderas de Suscripción (Botón Dorado)
-      description: Habilita o deshabilita en caliente los módulos de Prospección, Ventas y Reservas del tenant.
+      summary: Actualizar Banderas de Suscripción (Botón Dorado)
+      description: Modifica en caliente los módulos de IA activos para el tenant.
       security:
         - BearerAuth: []
       parameters:
@@ -142,7 +127,6 @@ paths:
           schema:
             type: string
             format: uuid
-            example: d3b07384-d113-4956-a5db-e1c482597750
       requestBody:
         required: true
         content:
@@ -151,22 +135,19 @@ paths:
               $ref: '#/components/schemas/SubscriptionFlagsUpdate'
       responses:
         '200':
-          description: Banderas de suscripción actualizadas.
+          description: Banderas actualizadas correctamente.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubscriptionFlagsResponse'
-        '400':
-          description: Petición incorrecta o parámetros malformados.
-        '401':
-          description: Token inválido.
-        '403':
-          description: Privilegios insuficientes.
 
+  # ==========================================
+  # GESTIÓN DE CHATS & CO-PILOTAJE HUMANO
+  # ==========================================
   /api/v1/chats/{conversacion_id}/messages:
     post:
-      summary: Enviar Mensaje desde el Operador (CRM Co-pilot)
-      description: Permite a un operador humano enviar un mensaje directo al cliente, interrumpiendo el flujo autónomo de la IA.
+      summary: Enviar Mensaje de Operador (CRM Co-pilot)
+      description: Permite al operador humano intervenir en la conversación y desactivar la IA autónoma.
       security:
         - BearerAuth: []
       parameters:
@@ -176,7 +157,6 @@ paths:
           schema:
             type: string
             format: uuid
-            example: c42f4b48-ec8d-4cb0-a54f-124b1790ee2b
       requestBody:
         required: true
         content:
@@ -188,27 +168,103 @@ paths:
               properties:
                 contenido:
                   type: string
-                  description: Contenido de texto que se le enviará al cliente.
-                  example: "Hola, soy el veterinario de turno. ¿En qué le puedo ayudar?"
+                  example: "Hola, soy el Dr. Juan. He tomado el control del chat."
       responses:
         '200':
-          description: Mensaje encolado e insertado en la base de datos de auditoría.
+          description: Mensaje encolado y enviado al cliente.
+
+  /api/v1/chats/{conversacion_id}/pause:
+    post:
+      summary: Pausar o Reanudar IA en una Conversación
+      description: Cambia el flag `escalated` para transferir el control entre el humano y el agente Val.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversacion_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - paused
+              properties:
+                paused:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Estado de pausa actualizado.
+
+  # ==========================================
+  # AGENDA Y CITAS MÉDICAS
+  # ==========================================
+  /api/v1/agenda/slots:
+    get:
+      summary: Consultar Disponibilidad de Horarios
+      description: Retorna los bloques horarios disponibles aplicando lógica anti-double-booking.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: fecha
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-06-15"
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de slots horarios disponibles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgendaSlot'
+
+  # ==========================================
+  # COMPLIANCE (GDPR & META DATA DELETION)
+  # ==========================================
+  /api/v1/compliance/data-deletion:
+    post:
+      summary: Solicitud de Borrado de Datos de Usuario (Meta GDPR)
+      description: Endpoint oficial requerido por Meta para la eliminación de datos de usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+      responses:
+        '200':
+          description: Código de confirmación de eliminación y URL de seguimiento.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
+                  url:
                     type: string
-                    example: message_queued
-                  mensaje_id:
+                    example: "https://api.valvic.cl/compliance/data-deletion/status/DEL-12345"
+                  confirmation_code:
                     type: string
-                    format: uuid
-                    example: a5607998-d191-45bc-9bf8-917cf7b194d2
-        '401':
-          description: No autorizado.
-        '404':
-          description: Conversación no encontrada o no pertenece al tenant del operador.
+                    example: "DEL-12345"
 
 components:
   securitySchemes:
@@ -216,50 +272,45 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Autenticación mediante token JWT de Clerk asociado al tenant del usuario.
+      description: Autenticación mediante JSON Web Token (JWT) de Clerk.
 
   schemas:
-    HTTPError:
-      type: object
-      properties:
-        detail:
-          type: string
-          example: "Verification failed"
-
     SubscriptionFlagsResponse:
       type: object
       properties:
         tenant_id:
           type: string
           format: uuid
-          example: d3b07384-d113-4956-a5db-e1c482597750
         prospector_active:
           type: boolean
-          example: false
-          description: Habilita el raspado y envío saliente automático (outbound).
         sales_active:
           type: boolean
-          example: true
-          description: Habilita el nodo conversacional interactivo de venta de servicios.
         booking_active:
           type: boolean
-          example: true
-          description: Habilita el agendamiento directo autónomo en la agenda médica.
-        flags_updated_at:
+        updated_at:
           type: string
           format: date-time
-          example: "2026-05-21T19:35:00Z"
 
     SubscriptionFlagsUpdate:
       type: object
       properties:
         prospector_active:
           type: boolean
-          example: false
         sales_active:
           type: boolean
-          example: true
         booking_active:
+          type: boolean
+
+    AgendaSlot:
+      type: object
+      properties:
+        start_time:
+          type: string
+          example: "2026-06-15T10:00:00Z"
+        end_time:
+          type: string
+          example: "2026-06-15T10:45:00Z"
+        available:
           type: boolean
           example: true
 
@@ -271,32 +322,9 @@ components:
       properties:
         object:
           type: string
-          enum: [whatsapp_business_account, instagram, page]
           example: whatsapp_business_account
         entry:
           type: array
           items:
             type: object
-            properties:
-              id:
-                type: string
-                example: "109283719283719"
-              changes:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    field:
-                      type: string
-                      example: messages
-                    value:
-                      type: object
-                      description: Datos del mensaje, teléfono de origen y texto.
 ```
-
----
-
-## Directrices de Integración y Seguridad
-
-1. **Aislamiento Multi-tenant:** Toda petición que interactúe con `/api/v1/` realiza internamente una resolución en base al JWT de Clerk. El `tenant_id` se extrae del reclamo (`claim`) de la organización de Clerk y se inyecta en la cláusula SQL de base de datos de manera determinista (`WHERE tenant_id = :tenant_id`), asegurando que ningún operador pueda visualizar o interactuar con datos de otros clientes.
-2. **Control de Flujo Conversacional (Cojín Humano):** Al invocar el endpoint de envío de mensaje de operador (`POST /messages`), el backend marca la conversación actual como escalada (`escalated=true`) en la sesión de LangGraph. Esto deshabilita inmediatamente las respuestas autónomas del agente para dar el control total al humano, hasta que la conversación se cierre manualmente en el CRM.
