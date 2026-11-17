@@ -73,16 +73,21 @@ graph TD
 
 ---
 
-## 4. Estado de Implementación Técnica de ValVic
+## 4. Estado de Implementación Técnica: As-Is (Código) vs. To-Be (Diseño Documentado)
 
-| Componente | Estado Arquitectónico | Estado de Despliegue | Notas de Ingeniería |
+> [!IMPORTANT]
+> **Diferenciación de Ciclo de Vida:**
+> * **Código Fuente Actual (As-Is):** Reside en el repositorio principal y refleja el prototipo funcional inicial construido en modo *Code-First* (FastAPI monolítico, colas SQL `sys_webhook_queue`, persistencia dual SQLite/Oracle).
+> * **Arquitectura Documentada (To-Be):** Formalizada en este hub bajo el estándar *Documentation-First* tras el Post-Mortem `PM-0001` (3 microservicios, broker Redis, paridad Twelve-Factor estricta). La refactorización en código se ejecuta guiada por estos documentos.
+
+| Componente | Estado en Código (As-Is) | Estado Objetivo Documentado (To-Be) | Notas de Ingeniería |
 | :--- | :---: | :---: | :--- |
-| **Ingress Webhooks Meta** | ✅ Desacoplado | 🟡 Listo para Deploy OCI | Ingress Stateless + Broker Redis con tiempo de respuesta <20ms |
-| **Core FastAPI (28 Routers)** | ✅ Operativo | 🟡 Listo para Deploy OCI | Routers tipados con Pydantic v2 |
-| **Agentes Google ADK** | ✅ Operativo | 🟡 Listo para Deploy OCI | Enrutador de intenciones y tools clínicas de agenda |
-| **Persistencia Relacional** | ✅ Verificado | 🟡 24 DDLs listos en Oracle | Paridad Dev/Prod con contenedores Docker (Factor X) |
-| **CRM Next.js 15** | ✅ Compilado | 🔴 Pendiente conexión API | Tablero operacional con control en caliente ("Botón Dorado") |
-| **Landing & Client Factory** | ✅ Operativo | ✅ `clientes.valvic.cl` | Motor estático en Astro para generación de sitios clínicos |
+| **Ingress Webhooks Meta** | 🟡 Cola SQL (`sys_webhook_queue`) | 🎯 Ingress Gateway Stateless + Redis | Reducción de latencia a <15 ms y desacoplamiento de DB |
+| **Procesos & Workers** | 🟡 Lifespan en FastAPI (Monolito) | 🎯 Flota de Workers en Contenedores | Aislamiento de fallos y escalabilidad independiente |
+| **Agentes Google ADK** | ✅ Operativo en código | 🎯 Worker Dedicado de Inferencia | Control de intents y tools clínicas de agenda |
+| **Persistencia de Datos** | 🟡 Dual SQLite / Oracle 23ai | 🎯 Paridad Dev/Prod Estricta (Docker) | Factor X Twelve-Factor: mismo motor en dev, CI y prod |
+| **CRM Next.js 15** | ✅ Compilado / Vistas listas | 🎯 Conectado a Core Clinical API | Tablero operacional con control ("Botón Dorado") |
+| **Landing & Client Factory** | ✅ Operativo en producción | ✅ `clientes.valvic.cl` / `spotvet.cl` | Motor estático en Astro para generación de sitios |
 
 ---
 *Documentación consolidada en el marco de la restitución de la soberanía técnica y liderazgo de proyectos de ingeniería de software.*

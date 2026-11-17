@@ -27,8 +27,16 @@ Uno de los mayores temores al ser evaluado técnicamente es hablar de los proyec
 * **Situación:** En ValVic nos propusimos crear una solución integral para clínicas (captación de prospectos, CRM, atención por WhatsApp con IA y agendamiento).
 * **Tarea:** El proyecto creció aceleradamente hasta alcanzar 28 routers REST, 44 tablas en base de datos y múltiples tareas de fondo en memoria.
 * **El Quiebre (Confesión Técnica):** *"Al priorizar la velocidad funcional inicial sin haber congelado previamente los contratos de interfaz (OpenAPI), los límites de contexto (Bounded Contexts) y los invariantes de negocio, el sistema se convirtió en un monolito acoplado. Las tareas de fondo compartían el mismo proceso de la API web, y cada cambio generaba deuda técnica acumulada."*
-* **La Decisión de Liderazgo:** *"En lugar de seguir parchando el código a ciegas, tomé la decisión ejecutiva de frenar el desarrollo desordenado. Realicé una auditoría de deuda técnica formal, diseñé un Documento de Arquitectura de Software (SAD), redacté Registros de Decisiones de Arquitectura (ADRs) y apliqué el estándar 'Documentation-First' que hoy también rige mis proyectos de ingeniería (como StockPilot). Desacoplamos la ingestión de webhooks con colas en base de datos (`SKIP LOCKED`) y aislamos los workers en contenedores independientes."*
+* **La Decisión de Liderazgo:** *"En lugar de seguir parchando el código a ciegas, tomé la decisión ejecutiva de frenar el desarrollo desordenado. Realicé una auditoría de deuda técnica formal, diseñé un Documento de Arquitectura de Software (SAD), redacté Registros de Decisiones de Arquitectura (ADRs) y apliqué el estándar 'Documentation-First' que hoy también rige mis proyectos de ingeniería (como StockPilot). Desacoplamos la arquitectura conceptualmente hacia un Ingress Stateless con broker Redis y workers independientes, erradicando la persistencia dual SQLite/Oracle por paridad estricta con Docker."*
 * **El Aprendizaje para BDO:** *"Esta experiencia me grabó a fuego una lección que aplico directamente al gobernar proveedores: **si tú no le exiges a un proveedor contratos de datos estrictos, criterios de aceptación Gherkin y documentación previa, el proveedor te va a entregar un monolito frágil que colapsará en mantenimiento**."*
+
+### 2.1 Cómo Explicar el Estado Actual: As-Is (Código) vs. To-Be (Documentación)
+
+Si un evaluador técnico te pregunta: *"¿Esta arquitectura v2.1 ya está completamente implementada en el código fuente de ValVic?"*, respondes con total aplomo y autoridad profesional:
+
+> *"El repositorio de código fuente refleja actualmente el estado **As-Is** de la plataforma: el prototipo funcional inicial construido en modo Code-First (el backend FastAPI monolítico con la cola SQL y la persistencia dual). Fue precisamente ese código funcionando el que me permitió validar el modelo de negocio con clínicas reales y descubrir en la práctica los dolores del acoplamiento y la deuda técnica.*
+>
+> *La documentación formal que ven hoy (el SAD v2.1 y los 6 ADRs) representa la **Arquitectura Objetivo (To-Be)**. Detuve deliberadamente el desarrollo a ciegas para aplicar la disciplina **Documentation-First**: primero se formaliza la arquitectura, los límites de contexto y las decisiones técnicas, y sobre ese plano se ejecuta la refactorización. Así es exactamente como opero: no permito que se tire una línea de código sin una especificación arquitectónica aprobada."*
 
 ---
 

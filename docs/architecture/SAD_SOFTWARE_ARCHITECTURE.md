@@ -1,10 +1,11 @@
 # ValVic — Documento de Arquitectura de Software (SAD)
 
-> **Estado:** Aprobado (Refundación Arquitectónica v2.1)  
-> **Versión:** 2.1.0 — Enterprise Grade  
+> **Estado del Documento:** Arquitectura Objetivo (To-Be) Aprobada para Implementación  
+> **Estado del Código Base:** Prototipo Inicial As-Is (Monolito Code-First en proceso de refactorización)  
+> **Versión:** 2.1.0 — Enterprise Target  
 > **Autor Principal:** Víctor Venegas Lindzay — Lead Solutions Architect & Technical Product Manager  
 > **Dominio de Negocio:** AI-OS Multi-Tenant y Automatización de Agendas para Clínicas y Prestadores de Salud  
-> **Principios Rectores:** Twelve-Factor App (Paridad Dev/Prod) + Domain-Driven Design (DDD) + Herramientas Maduras de Industria  
+> **Principios Rectores:** Documentation-First + Twelve-Factor App (Paridad Dev/Prod) + DDD  
 
 ---
 
@@ -24,6 +25,20 @@ ValVic introduce un sistema operativo inteligente que desacopla la atención al 
 ### 1.3 Diferenciación Clave: Proyecto Académico (StockPilot) vs. Proyecto Corporativo Real (ValVic)
 * **StockPilot (Dominio de Primeros Principios):** Fue concebido como un proyecto demostrativo para exhibir dominio algorítmico profundo: filtros de idempotencia programados desde cero, manejo directo de primitivas de concurrencia (`CountDownLatch`, `AtomicInteger`) y control manual de transacciones.
 * **ValVic (SaaS Corporativo de Misión Crítica):** Al ser un producto real para empresas, **está estrictamente prohibido reinventar la rueda**. Todo componente de infraestructura que ya esté resuelto por la industria (colas de mensajes, brokers de eventos, bloqueos distribuidos, schedulers) se delega en herramientas probadas y estandarizadas (**Redis / RabbitMQ / Celery / Docker**) para erradicar la complejidad accidental y enfocar el 100% del esfuerzo en la lógica clínica del negocio.
+
+### 1.4 Estado de Transición: As-Is (Código Actual) vs. To-Be (Arquitectura Objetivo)
+
+En alineación estricta con el principio **Documentation-First**, este documento establece la **Arquitectura Objetivo (To-Be)** que rige la refundación del sistema tras el Post-Mortem de Ingeniería `PM-0001`.
+
+| Dimensión Arquitectónica | Estado Actual en Código (As-Is — Monolito Inicial) | Estado Objetivo Documentado (To-Be — Versión 2.1) | Justificación del Cambio |
+| :--- | :--- | :--- | :--- |
+| **Ingress & Webhooks** | Encolamiento síncrono en tabla SQL (`sys_webhook_queue`) con worker en `lifespan` de FastAPI | Ingress Gateway Stateless (<15 ms) con broker de mensajería estándar (Redis / RabbitMQ) | Eliminar sobrecarga de I/O en la base de datos y evitar caídas cruzadas por saturación del event loop. |
+| **Persistencia & Testing** | Motor dual heterogéneo: SQLite en tests locales y Oracle 23ai en producción | Paridad Dev/Prod absoluta (Factor X): Contenedores Docker idénticos en dev, CI y producción | Eliminar inconsistencias de tipos (`VECTOR`), dialectos DDL y falsos positivos en tests. |
+| **Despliegue de Procesos** | Un solo proceso monolítico que corre la API web, tareas batch y scraping | 3 microservicios desacoplados: Ingress Gateway, Worker Fleet y Core Clinical API | Aislar fallos: si un worker de IA o scraping se reinicia, la API web y los webhooks siguen respondiendo. |
+| **Bloqueos & Concurrencia** | Diccionario en memoria con `asyncio.Lock()` y `SELECT FOR UPDATE` artesanal | Bloqueo transaccional en BD para reservas + Redis Redlock para tareas distribuidas | Evitar race conditions en escenarios multi-réplica en la nube. |
+
+> [!NOTE]
+> El repositorio de código fuente refleja actualmente la versión **As-Is**, la cual sirvió como prototipo funcional inicial para validar el negocio y descubrir los límites del acoplamiento. La presente documentación constituye la especificación formal **To-Be** previa a la ejecución de la refactorización en código.
 
 ---
 
