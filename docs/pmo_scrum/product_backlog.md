@@ -105,6 +105,14 @@ Escenario: Pausa instantánea de la IA por el operador humano
   Entonces la bandera "is_ai_paused" cambia a TRUE en la base de datos en menos de 50 ms
   Y cualquier mensaje subsiguiente del paciente es enrutado exclusivamente a la bandeja del operador humano
   Y el motor de IA cesa inmediatamente cualquier despacho automático a WhatsApp.
+
+Escenario: Reanudación controlada de la IA tras resolución humana
+  Dado que un chat activo tiene la bandera "is_ai_paused = TRUE"
+  Y el operador humano ha resuelto y cerrado la consulta médica manual
+  Cuando el operador reactiva el interruptor de asistencia de IA en el CRM
+  Entonces la bandera "is_ai_paused" transiciona a FALSE
+  Y el siguiente mensaje entrante del paciente vuelve a ser atendido autónomamente por "Val"
+  Y se registra un evento de auditoría con la identidad del operador responsable.
 ```
 
 ---
@@ -115,6 +123,13 @@ Escenario: Pausa instantánea de la IA por el operador humano
 * **Para:** Cumplir con la Ley de Protección de la Vida Privada y garantizar el secreto profesional.
 
 ```gherkin
+Escenario: Consulta exitosa y legítima de paciente dentro del mismo tenant
+  Dado que un usuario está autenticado en el CRM con "tenant_id = clinic_spotvet"
+  Cuando el cliente envía una petición GET a "/api/pacientes/PAC-1001"
+  Y el paciente "PAC-1001" pertenece a "tenant_id = clinic_spotvet"
+  Entonces el backend responde HTTP 200 OK con la ficha clínica completa
+  Y se valida criptográficamente que no hubo fugas de datos hacia otros tenants.
+
 Escenario: Intento de acceso transversal a datos de otra clínica
   Dado que un usuario está autenticado en el CRM con "tenant_id = clinic_spotvet"
   Cuando el cliente envía una petición GET a "/api/pacientes/PAC-9988"
