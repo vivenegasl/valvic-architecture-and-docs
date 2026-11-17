@@ -85,8 +85,8 @@ Toda operación del sistema debe respetar de forma inviolable las siguientes reg
 
 | # | Invariante | Expresión Lógica / Mecanismo | Justificación de Negocio |
 | :-: | :--- | :--- | :--- |
-| **I-01** | **Aislamiento Multi-Tenant Absoluto** | `WHERE tenant_id = :current_tenant_id` obligatorio en 100% de queries DQL/DML | Una clínica jamás puede leer ni alterar datos de otra. Fuga de datos clínicos viola Ley 19.628 de Protección de la Vida Privada. |
-| **I-02** | **Cero Solapamiento de Citas (Zero Double-Booking)** | `COUNT(slot) = 0 FOR UPDATE` en ventana `[start_time, end_time]` por médico | Falta grave de servicio citar a dos pacientes a la misma hora con el mismo médico veterinario. |
+| **I-01** | **Aislamiento Multi-Tenant Absoluto** | Row-Level Security (RLS) nativo en motor BD + inyección de sesión | Una clínica jamás puede leer ni alterar datos de otra. Fuga de datos clínicos viola Ley 19.628 de Protección de la Vida Privada. |
+| **I-02** | **Cero Solapamiento de Citas (Zero Double-Booking)** | Restricción Declarativa `UNIQUE/EXCLUDE` en BD + Hold temporal en Redis (TTL 5 min) | Falta grave de servicio citar a dos pacientes a la misma hora con el mismo médico veterinario. |
 | **I-03** | **Idempotencia de Mensajería Ingress** | Clave única `idempotency_key = SHA256(msg_id)` con TTL 24h en Redis | Meta Cloud API reintenta peticiones ante latencias de red. Previene enviar respuestas repetidas al paciente. |
 | **I-04** | **Cojín Humano en Caliente (Soberanía Operacional)** | `IF tenant.is_ai_paused THEN BYPASS_AGENT()` latencia `<50ms` | Si el médico detecta una urgencia clínica, la IA debe callarse de forma instantánea y ceder el control al humano. |
 | **I-05** | **Trazabilidad Inmutable de Cobros y Agendas** | Eventos de estado (`CREATED`, `CONFIRMED`, `CANCELLED`, `REFUNDED`) en append-only log | Auditoría contable y resolución de discrepancias comerciales. |

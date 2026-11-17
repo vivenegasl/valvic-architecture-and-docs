@@ -54,8 +54,8 @@ Escenario: Recepción exitosa de mensaje entrante de WhatsApp
   Dado que Meta envía un webhook POST a "/webhook/whatsapp" con firma HMAC válida
   Y el payload contiene un mensaje de texto de un paciente registrado
   Cuando la API de ValVic procesa la solicitud
-  Entonces el endpoint responde HTTP 200 OK en menos de 50 milisegundos
-  Y el mensaje queda persistido con estado "pending" en "sys_webhook_queue"
+  Entonces el endpoint responde HTTP 200 OK en menos de 20 milisegundos
+  Y el mensaje se publica en la cola "queue:whatsapp:inbound" del broker Redis
   Y el socket HTTP con Meta se cierra inmediatamente.
 
 Escenario: Rechazo de webhook con firma HMAC inválida (Intento de Spoofing)
@@ -75,17 +75,18 @@ Escenario: Rechazo de webhook con firma HMAC inválida (Intento de Spoofing)
 
 ```gherkin
 Escenario: Reserva exitosa de slot de atención médica disponible
-  Dado que el profesional "Dr. Soto" tiene el slot de las "11:00 AM" con estado "AVAILABLE"
+  Dado que el profesional "Dr. Soto" tiene disponible el slot de las "11:00 AM"
+  Y el paciente cuenta con el hold temporal adquirido en Redis
   Cuando el paciente solicita confirmar su reserva para ese horario
-  Entonces el sistema ejecuta un SELECT ... FOR UPDATE sobre el slot
-  Y el estado cambia atómicamente a "BOOKED" asignado al RUT del paciente
-  Y se emite la confirmación de la cita con código único de reserva.
+  Entonces el sistema inserta la cita protegida por la restricción UNIQUE/EXCLUDE en la base de datos
+  Y la cita queda formalizada con código único de reserva asignado al paciente
+  Y el lock temporal en Redis se libera.
 
 Escenario: Conflicto de concurrencia simultánea sobre el mismo horario
   Dado que dos pacientes intentan confirmar el mismo slot de las "11:00 AM" en el mismo milisegundo
-  Cuando ambas transacciones compiten por el bloqueo pesimista en la base de datos
-  Entonces exactamente una transacción adquiere el bloqueo y confirma la cita
-  Y la segunda transacción recibe una excepción "SlotAlreadyBookedException"
+  Cuando ambas solicitudes intentan insertar en la base de datos
+  Entonces exactamente una inserción tiene éxito
+  Y la segunda es rechazada por el motor relacional por violación de restricción única (IntegrityError)
   Y el asistente de IA le ofrece amablemente al segundo paciente el siguiente horario disponible ("11:30 AM").
 ```
 
