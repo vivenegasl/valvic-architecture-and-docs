@@ -70,6 +70,7 @@ graph TD
 ### 🎯 Preparación Profesional
 * 🏆 **[Guía Maestra de Defensa Técnica — Project Leader TI (BDO Chile)](docs/interview_prep/guia_defensa_tecnica_project_leader.md):** Posicionamiento estratégico, narrativa STAR del monolito, puente conceptual hacia el stack Microsoft (Azure, Dataverse, Power BI) y simulación de preguntas de entrevista.
 * 📚 **[Glosario Maestro y Guía de Términos Técnicos](docs/interview_prep/glosario_maestro_terminos_tecnicos.md):** Diccionario conceptual de referencia rápida (STAR, MoSCoW, SLAs, Twelve-Factor, etc.).
+* 🧭 **[Guía de Lectura de Diagramas de Arquitectura y Matrices PMO](docs/interview_prep/guia_lectura_diagramas_y_matrices.md):** Manual de interpretación y fórmulas de defensa oral para el Modelo C4, Secuencia, FSM, ERD, Matriz RACI, Riesgo AIRMPC, MoSCoW y SLAs.
 
 ---
 
