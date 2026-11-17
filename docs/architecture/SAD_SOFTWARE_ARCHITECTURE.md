@@ -45,29 +45,23 @@ En alineación estricta con el principio **Documentation-First**, este documento
 ## 2. Delimitación Rigurosa del Alcance (Scope Boundaries)
 
 ```mermaid
-flowchart TD
-    subgraph InScope["En Alcance (Core Enterprise v2.1)"]
-        A1["Ingress Gateway Stateless (Sub-20ms)"]
-        A2["Broker Dedicado (Redis / RabbitMQ)"]
-        A3["Workers Desacoplados (Google ADK & Cron)"]
-        A4["Paridad Dev/Prod Estricta (Docker / DB Idéntica)"]
-        A5["Aislamiento Multi-Tenant Absoluto (WHERE tenant_id)"]
-        A6["CRM Next.js 15 con Botón Dorado"]
-    end
-
-    subgraph PostMVP["Siguiente Fase (Roadmap Post-MVP)"]
-        B1["Portal Paciente Autogestión OTP"]
-        B2["Sincronización Bidireccional con Software Médico (PMS)"]
-        B3["Facturación Electrónica Automática (SII Chile)"]
-    end
-
-    subgraph OutOfScope["Fuera de Alcance Explícito"]
-        C1["Videollamadas y Telemedicina en Vivo"]
-        C2["Hardware Clínico / IoT"]
-        C3["Hosting Local de LLMs (Uso de APIs Gestionadas)"]
-    end
-
-    InScope -.-> PostMVP
+mindmap
+  root((ValVic Enterprise))
+    En Alcance v2.1
+      Ingress Gateway Stateless
+      Broker Dedicado Redis
+      Flota Workers Google ADK
+      Paridad Dev-Prod Docker
+      Aislamiento RLS Multi-Tenant
+      CRM Next.js 15 Boton Dorado
+    Siguiente Fase Roadmap
+      Portal Paciente OTP
+      Sincronizacion PMS Medico
+      Facturacion SII Chile
+    Fuera de Alcance
+      Telemedicina en Vivo
+      Hardware Clinico IoT
+      Hosting Local LLMs
 ```
 
 ### 2.1 En Alcance (Core v2.1 Enterprise)
