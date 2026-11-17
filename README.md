@@ -57,7 +57,7 @@ graph TD
   3. [ADR-0003: Adopción de Google ADK vs LangGraph / CrewAI](docs/adr/0003-adopcion-google-adk-vs-langgraph-crewai.md)
   4. [ADR-0004: Modelo de Aislamiento Multi-Tenant por Columna `tenant_id`](docs/adr/0004-aislamiento-multitenant-por-schema-vs-tenant-id.md)
   5. [ADR-0005: Motor de Agenda Anti-Double-Booking con Bloqueo Pesimista](docs/adr/0005-motor-agenda-anti-double-booking-bloqueo-pesimista.md)
-  6. [ADR-0006: Deconstrucción del Monolito hacia Módulos Desacoplados](docs/adr/0006-deconstruccion-del-monolito-a-modulos-independientes.md)
+  6. [ADR-0006: Deconstrucción del Monolito hacia 3 Microservicios Pragmáticos con Broker Redis](docs/adr/0006-deconstruccion-del-monolito-a-modulos-independientes.md)
 
 ### 🔬 Lecciones de Ingeniería y Auditoría de Deuda Técnica
 * 🚨 **[Post-Mortem PM-0001: El Colapso del Monolito y la Auditoría de Deuda Técnica](docs/postmortem/0001-analisis-deuda-tecnica-y-colapso-del-monolito.md):** Análisis de causa raíz (5 Whys) sobre el acoplamiento de tareas en el event loop de FastAPI, la trampa de la deuda cognitiva asistida por IA y el imperativo del enfoque *Documentation-First*.
