@@ -57,7 +57,7 @@ Se decide adoptar **Google ADK (Agent Development Kit)** como el motor estándar
 ## 4. Consecuencias y Compensaciones
 
 ### Consecuencias Positivas:
-* **Reducción Drástica de Latencia Conversacional:** El tiempo total desde que el paciente envía un mensaje en WhatsApp hasta que recibe la respuesta con agenda bajó de **4.8 segundos a 1.2 segundos**.
+* **Eliminación de la Sobrecarga de Frameworks:** Se erradicó el retardo de 1.5 a 2.5 segundos introducido por las capas de abstracción de LangGraph/CrewAI en memoria, optimizando la orquestación a llamadas directas de herramientas.
 * **Reducción de Deuda Técnica y Dependencias:** Se eliminaron más de 80 paquetes huérfanos del entorno Python, estabilizando el build y acelerando el tiempo de arranque de la API.
 * **Control Absoluto del Estado Conversacional:** Google ADK permite serializar y persistir el estado de la conversación directamente en la base de datos relacional de forma determinista.
 
@@ -68,5 +68,5 @@ Se decide adoptar **Google ADK (Agent Development Kit)** como el motor estándar
 
 ## 5. Cumplimiento y Verificación
 
-* **Pruebas de Tool Calling:** `backend/api/tests/test_adk_workflow.py` valida la correcta ejecución de herramientas de catálogo y agenda con mocking de respuestas de Gemini.
-* **Tolerancia a Fallos:** La prueba de desconexión de red de Gemini activa exitosamente la respuesta mediante el fallback de Claude en menos de 1 segundo.
+* **Pruebas de Tool Calling:** En la suite de pruebas unitarias (`test_adk_workflow.py`), se valida la correcta ejecución de herramientas de catálogo y agenda con mocking de respuestas de Gemini.
+* **Tolerancia a Fallos:** La prueba de desconexión de red de Gemini activa la respuesta mediante el fallback de Claude.

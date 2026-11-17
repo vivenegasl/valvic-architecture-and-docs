@@ -1,7 +1,7 @@
 # ADR-0006: Deconstrucción del Monolito hacia Módulos y Servicios Desacoplados
 
-> **Estado:** Aceptado (En Implementación)  
-> **Fecha:** Mayo 2026 (Consolidado: Noviembre 2026)  
+> **Estado:** Arquitectura Objetivo (To-Be) Aprobada para Refactorización  
+> **Fecha:** Mayo 2026 (Consolidado To-Be: Noviembre 2026)  
 > **Decisores:** Víctor Venegas Lindzay  
 > **Área:** Arquitectura / Ciclo de Vida / Escalabilidad / Microservicios  
 
@@ -82,7 +82,7 @@ graph TB
 
 ---
 
-## 5. Cumplimiento y Verificación
+## 5. Criterios de Aceptación y Plan de Verificación (Refactorización To-Be)
 
-* **Orquestación en Staging:** `docker compose -f docker-compose.prod.yml up -d` levanta los tres contenedores de forma independiente.
-* **Simulación de Falla:** Al matar forzosamente el contenedor `valvic-worker` con `docker kill`, el endpoint de la API sigue respondiendo `200 OK` y acumulando mensajes en cola sin interrupción del servicio.
+* **Validación de Despliegue Desacoplado (DoD):** El stack de Docker Compose de la refactorización deberá orquestar los tres contenedores de forma independiente con límites de memoria y CPU aislados.
+* **Prueba de Resiliencia ante Caídas:** La Definition of Done exige validar que al detener el contenedor del worker de IA, el Ingress Gateway mantenga su disponibilidad respondiendo `HTTP 200 OK` a Meta sin interrupciones.

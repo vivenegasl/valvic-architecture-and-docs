@@ -59,10 +59,10 @@ Se decide implementar la **Opción C: Esquema Compartido con Columna Discriminad
 * **Facilidad para Reportería Agregada:** Permite a los administradores de ValVic generar métricas globales de adopción (ej. volumen total de mensajes procesados, tasa de conversión promedio) mediante simples agrupaciones por `tenant_id`.
 
 ### Consecuencias Negativas / Mitigación:
-* **Riesgo de Omisión en Consultas:** Para mitigar el riesgo de que una nueva función olvide filtrar por `tenant_id`, se implementó una suite de pruebas de seguridad perimetral (`test_multi_tenant_isolation.py`) que ejecuta ataques simulados entre tenants intentando acceder a IDs de otras organizaciones, garantizando respuestas `404 Not Found`.
+* **Riesgo de Omisión en Consultas:** Para mitigar el riesgo de que una nueva función olvide filtrar por `tenant_id`, se define en la Definition of Done el requerimiento de tests automáticos de aislamiento que verifiquen respuestas `404 Not Found` ante intentos de acceso cruzado entre tenants.
 
 ---
 
-## 5. Cumplimiento y Verificación
+## 5. Criterios de Aceptación y Plan de Verificación (Refactorización To-Be)
 
-* **Suite de Pruebas de Aislamiento:** `pytest backend/api/tests/test_multi_tenant_isolation.py` verifica que un usuario autenticado en `tenant_A` reciba error al intentar leer o modificar recursos pertenecientes a `tenant_B`.
+* **Pruebas de Aislamiento de Tenant (DoD):** Toda nueva funcionalidad debe incluir un test de integración que certifique que un usuario o servicio autenticado con `tenant_A` no pueda consultar ni modificar recursos pertenecientes a `tenant_B`.

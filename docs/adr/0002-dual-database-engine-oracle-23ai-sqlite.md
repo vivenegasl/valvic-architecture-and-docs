@@ -1,7 +1,7 @@
 # ADR-0002: Paridad Dev/Prod Estricta — Deprecación de SQLite y Adopción de Contenedores Idénticos (Twelve-Factor App #10)
 
-> **Estado:** Aprobado / Evolucionado a Estándar Enterprise (v2.1)  
-> **Fecha:** Mayo 2026 (Revisión Enterprise: Noviembre 2026)  
+> **Estado:** Arquitectura Objetivo (To-Be) Aprobada para Refactorización  
+> **Fecha:** Mayo 2026 (Revisión Enterprise To-Be: Noviembre 2026)  
 > **Decisores:** Víctor Venegas Lindzay  
 > **Área:** Persistencia / Base de Datos / DevOps / Testing  
 
@@ -57,15 +57,16 @@ Se decide **deprecar definitivamente SQLite** y adoptar la **Opción C: Paridad 
 ## 5. Consecuencias y Compensaciones
 
 ### Consecuencias Positivas:
-* **Cero Errores Sorpresa en Producción:** Si un test pasa en local o en CI, hay 100% de certeza de que funcionará en producción porque el motor, los dialectos, los tipos de datos y los índices son idénticos.
-* **Purga de Deuda Técnica:** Se eliminaron todos los scripts parches (`fix_all_tests*`), simplificando radicalmente la base de código.
-* **Validación de AI Vector Search en Desarrollo:** Los desarrolladores pueden probar la similitud de coseno y los embeddings clínicos directamente en sus máquinas.
+* **Cero Errores Sorpresa en Producción:** Garantiza paridad absoluta entre lo que se prueba en local/CI y lo que corre en producción, eliminando inconsistencias de dialectos o tipos vectoriales.
+* **Purga de Deuda Técnica:** Permite erradicar los scripts parches (`fix_all_tests*`) y bifurcaciones en el ORM, simplificando radicalmente la base de código.
+* **Validación de AI Vector Search en Desarrollo:** Los desarrolladores podrán probar la similitud de coseno y los embeddings clínicos directamente en sus máquinas.
 
 ### Consecuencias Negativas / Mitigación:
-* **Tiempo de Ejecución de Tests:** El tiempo de la suite de pruebas subió de 8 segundos a ~25 segundos debido al arranque del contenedor. Esta pequeña penalización de tiempo se compensa con creces por la confiabilidad matemática del software entregado.
+* **Sobrecarga de Tiempo en Tests (Estimada):** Se proyecta que levantar un contenedor local de base de datos añada ~15-20 segundos al inicio de la suite de pruebas. Este costo es despreciable comparado con la confiabilidad matemática del software entregado.
 
 ---
 
-## 6. Cumplimiento y Verificación
+## 6. Criterios de Aceptación y Plan de Verificación (Refactorización To-Be)
 
-* **Pipeline de CI/CD:** El flujo de integración continua levanta el contenedor de base de datos, ejecuta `./backend/scripts/run_oracle_ddl.sh` (scripts 01 a 24) y corre la suite completa de Pytest con 100% de éxito.
+* **Validación de Migraciones en CI/CD:** El pipeline de integración continua deberá ejecutar secuencialmente los 24 archivos DDL sobre el contenedor efímero antes de correr la suite de pruebas.
+* **Eliminación de Mocks Vectoriales:** Las pruebas de búsqueda semántica deberán ejecutarse directamente contra las funciones vectoriales del motor sin requerir emulación en memoria.

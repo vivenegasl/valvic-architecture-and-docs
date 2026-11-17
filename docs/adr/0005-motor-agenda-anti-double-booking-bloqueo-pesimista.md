@@ -60,9 +60,9 @@ Se decide implementar la **Opción C: Bloqueo Pesimista Atómico a Nivel de Base
        await session.commit()
    ```
 
-2. **Ventana Transaccional Ultracorta:**
+2. **Ventana Transaccional Proyectada:**
    * La llamada al modelo de lenguaje (LLM) y la redacción del mensaje empático se realizan **antes** o **después** de abrir la transacción de base de datos.
-   * La transacción con cerrojo pesimista dura únicamente entre **10 y 25 milisegundos**, evitando bloqueos prolongados o acumulación de hilos en espera.
+   * La transacción con cerrojo pesimista debe mantenerse en una ventana mínima (proyectada en <50 ms), evitando bloqueos prolongados o acumulación de hilos en espera.
 
 ---
 
@@ -70,13 +70,13 @@ Se decide implementar la **Opción C: Bloqueo Pesimista Atómico a Nivel de Base
 
 ### Consecuencias Positivas:
 * **Invariante de Negocio Garantizada:** Cero posibilidad matemática de sobreventa de horas (Zero Double-Booking) tanto entre múltiples pacientes concurrentes en WhatsApp como entre el bot de IA y la secretaria humana en el panel web.
-* **Integridad Referencial Absoluta:** La confirmación emitida al paciente por WhatsApp solo se envía una vez que el commit en la base de datos se completó con éxito.
+* **Integridad Referencial Absoluta:** La confirmación emitida al paciente por WhatsApp solo se envía una vez que el commit en la base de datos se completa con éxito.
 
 ### Consecuencias Negativas / Limitaciones:
 * **Manejo de Reintentos:** Si dos transacciones intentan bloquear el mismo slot exacto al mismo milisegundo, la segunda transacción esperará brevemente y luego recibirá una excepción `SlotAlreadyBookedException`. El asistente conversacional captura esta excepción y le responde amablemente al segundo usuario: *"Ese horario acaba de ser tomado hace un instante, ¿te acomodaría 30 minutos más tarde?"*.
 
 ---
 
-## 5. Cumplimiento y Verificación
+## 5. Criterios de Aceptación y Plan de Verificación (Refactorización To-Be)
 
-* **Test de Concurrencia:** `pytest backend/api/tests/test_concurrency_booking.py` lanza 20 corrutinas concurrentes intentando reservar el mismo horario; exactamente 1 corrutina tiene éxito (`BOOKED`) y las otras 19 son rechazadas de forma limpia con código controlado.
+* **Plan de Pruebas de Concurrencia (DoD):** Como parte de la Definition of Done de la refactorización, se debe implementar una prueba de estrés concurrente que ejecute múltiples corrutinas simultáneas compitiendo por el mismo horario, validando que exactamente 1 confirme y las demás sean manejadas limpiamente por el asistente.
