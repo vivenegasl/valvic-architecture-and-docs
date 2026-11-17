@@ -23,23 +23,23 @@ Este diagrama representa cómo interactúan las aplicaciones del frontend, la AP
 
 ```mermaid
 graph TB
-    subgraph Canales["📱 Canales de Entrada"]
+    subgraph Canales ["📱 Canales de Entrada"]
         WA["WhatsApp Business<br/>(Meta Cloud API)"]
         IG["Instagram / Messenger<br/>(Meta Cloud API)"]
         WebClients["Pacientes / Clientes Web"]
     end
 
-    subgraph Frontends["💻 Frontends (Next.js 15 & Astro)"]
-        CRM["CRM Dashboard<br/>(Next.js 15 + Clerk Auth)<br/><code>crm.valvic.cl</code>"]
-        Landing["Landing Marketing<br/>(Astro + Demo CRM)<br/><code>valvic.cl</code>"]
-        Portal["Portal Paciente<br/>(Astro + OTP Auth)<br/><code>portal.valvic.cl</code>"]
-        ClientFactory["Client Factory<br/>(Astro Multi-Tenant)<br/><code>clientes.valvic.cl</code> / <code>spotvet.cl</code>"]
+    subgraph Frontends ["💻 Frontends (Next.js 15 & Astro)"]
+        CRM["CRM Dashboard<br/>(Next.js 15 + Clerk Auth)"]
+        Landing["Landing Marketing<br/>(Astro + Demo CRM)"]
+        Portal["Portal Paciente<br/>(Astro + OTP Auth)"]
+        ClientFactory["Client Factory<br/>(Astro Multi-Tenant)"]
     end
 
-    subgraph OCI["☁️ Oracle Cloud Infrastructure (Always Free - ARM Ampere A1)"]
-        Proxy["Proxy Reverso & SSL<br/>(Caddy / Nginx TLS 1.3)"]
+    subgraph OCI ["☁️ Oracle Cloud Infrastructure (Always Free - ARM Ampere A1)"]
+        Proxy["🔒 Proxy Reverso & SSL<br/>(Caddy / Nginx TLS 1.3)"]
         
-        subgraph FastAPI["⚡ FastAPI Backend Engine (Puerto 8000)"]
+        subgraph FastAPI ["⚡ FastAPI Backend Engine (Puerto 8000)"]
             Router["API Routers (/api/v1/*)<br/>(28 Módulos de Negocio)"]
             Lifespan["FastAPI Lifespan Workers"]
             WebhookQ["sys_webhook_queue Worker<br/>(SELECT FOR UPDATE SKIP LOCKED)"]
@@ -48,43 +48,42 @@ graph TB
             LLMManager["LLM Manager<br/>(Failover Inteligente)"]
         end
 
-        subgraph DB["💾 Dual Database Engine (100% SQLModel ORM)"]
-            OracleDB["Oracle Database 23ai<br/>(44 Tablas / 24 DDLs)"]
-            VectorStore["AI Vector Search<br/>(Embeddings Clínicos/Negocio)"]
-            SQLiteDev["SQLite In-Memory / Dev<br/>(190+ Pytest Suite)"]
+        subgraph DB ["💾 Persistencia de Datos"]
+            OracleDB[("Oracle Database 23ai<br/>44 Tablas / 24 DDLs<br/>AI Vector Search")]
+            SQLiteDev[("SQLite In-Memory<br/>Pytest Test Suite")]
         end
     end
 
-    subgraph AIServices["🧠 Proveedores de Inteligencia Artificial"]
+    subgraph AIServices ["🧠 Proveedores LLM Externos"]
         Gemini["Google Gemini 2.5<br/>(Flash / Pro - Primario)"]
         Claude["Anthropic Claude<br/>(Sonnet / Haiku - Fallback)"]
     end
 
-    %% Relaciones
+    %% Relaciones de Entrada hacia Frontends y Proxy
+    WebClients -->|Navegación Web| Frontends
+    Frontends -->|REST API / HTTPS| Proxy
     WA -->|Webhook HMAC-SHA256| Proxy
     IG -->|Webhook HMAC-SHA256| Proxy
-    WebClients -->|HTTPS| Landing
-    WebClients -->|HTTPS| Portal
-    WebClients -->|HTTPS| ClientFactory
-    
-    CRM -->|REST API + JWT Bearer| Proxy
-    Portal -->|REST API + OTP| Proxy
-    Landing -->|Leads Ingestion| Proxy
 
-    Proxy --> Router
-    Router --> Lifespan
+    %% Despacho Interno
+    Proxy -->|HTTP Local :8000| Router
+    Router -->|Inicia tareas| Lifespan
     Lifespan --> WebhookQ
     Lifespan --> ProspectorSched
     
-    WebhookQ --> ADK
-    Router --> ADK
+    WebhookQ -->|Procesa eventos| ADK
+    Router -->|Inferencia interactiva| ADK
     ADK --> LLMManager
-    LLMManager -->|Primario| Gemini
-    LLMManager -.->|Failover| Claude
+    
+    %% Llamadas externas a IA
+    LLMManager -->|Primario API| Gemini
+    LLMManager -.->|Fallback API| Claude
 
-    ADK --> DB
-    Router --> DB
-    ProspectorSched --> DB
+    %% Persistencia
+    Router -->|Transacciones| OracleDB
+    ADK -->|Búsqueda Vectorial & Citas| OracleDB
+    ProspectorSched -->|Almacena leads| OracleDB
+    FastAPI -.->|Entorno Tests| SQLiteDev
 ```
 
 ---
