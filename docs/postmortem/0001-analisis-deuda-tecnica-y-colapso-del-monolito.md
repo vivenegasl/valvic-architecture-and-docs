@@ -27,13 +27,13 @@ Este post-mortem analiza con rigor técnico las causas raíz del colapso, docume
 
 ```mermaid
 graph TD
-    subgraph MonolitoV1["Monolito ValVic V1 / V2 Inicial (Punto de Falla)"]
+    subgraph MonolitoV1["Monolito ValVic V1 / V2 Inicial<br/>(Punto de Falla)"]
         API["FastAPI Web Server<br/>(28 Routers REST)"]
-        Worker1["Lifespan Task: Webhook Queue"]
-        Worker2["Lifespan Task: Prospector Loop (12h)"]
-        Worker3["Lifespan Task: Recordatorios Citas"]
-        DB["Oracle 23ai / SQLite / Residuos MySQL"]
-        ADK["Google ADK + LLM Inferences"]
+        Worker1["Lifespan Task:<br/>Webhook Queue"]
+        Worker2["Lifespan Task:<br/>Prospector Loop (12h)"]
+        Worker3["Lifespan Task:<br/>Recordatorios Citas"]
+        DB["Oracle 23ai / SQLite<br/>Residuos MySQL"]
+        ADK["Google ADK +<br/>LLM Inferences"]
         
         API --- Worker1
         API --- Worker2
@@ -44,7 +44,7 @@ graph TD
         API --- ADK
     end
 
-    Impacto["SÍNTOMAS CRÍTICOS:<br/>1. Memory Leaks en Event Loop<br/>2. Deadlocks en Prospección Concurrente<br/>3. Pérdida de Trazabilidad y 'Deuda Cognitiva'<br/>4. Riesgo de Caída Total ante Excepción No Controlada"]
+    Impacto["SÍNTOMAS CRÍTICOS:<br/>1. Memory Leaks en Event Loop<br/>2. Deadlocks en Prospección<br/>Concurrente<br/>3. Pérdida de Trazabilidad y<br/>Deuda Cognitiva<br/>4. Riesgo de Caída Total ante<br/>Excepción No Controlada"]
     
     MonolitoV1 --> Impacto
 ```
