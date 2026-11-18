@@ -48,41 +48,31 @@ Cuando Pablo te diga: *"Víctor, cuéntanos sobre ti, tu trayectoria y por qué 
 ## 2. El Metamarco Integral de Trabajo (La "Respuesta Holística")
 
 ### 2.1 El Concepto: La Tecnología como un Sistema Unificado de Gobernanza
-Si te preguntan por tus certificaciones o por cómo abordas un proyecto, **no des respuestas fragmentadas**. Demuestra que posees un **metamarco de trabajo integrado**:
+Cuando Pablo Quezada te pregunte:
+«Víctor, cuéntanos cómo abordas tú la gestión de un proyecto tecnológico o cómo lideras a un equipo/proveedor»,
+no definas los términos uno a uno como conceptos aislados. Demuestra que posees un **metamarco de trabajo integrado** que conecta el negocio con la ingeniería de punta a punta:
 
 ```mermaid
 flowchart LR
-    subgraph F1["1. Negocio & Alcance"]
-        S1["Scrum PO & Master<br/>MoSCoW + Backlog Gherkin"]
-    end
-    subgraph F2["2. Contratos & Arquitectura"]
-        S2["Bases de Ingeniería (PUCV/Duoc)<br/>Definition of Ready (DoR) + ADRs"]
-    end
-    subgraph F3["3. Seguridad & Privacidad"]
-        S3["Cybersecurity (LCSPC)<br/>Multi-tenant RLS + Ley 19.628"]
-    end
-    subgraph F4["4. Inteligencia Artificial"]
-        S4["AI Risk (AIRMPC)<br/>Guardrails + Botón Dorado"]
-    end
-    subgraph F5["5. Calidad & Delivery"]
-        S5["DevOps (DAPC)<br/>Definition of Done (DoD) + Paridad"]
-    end
-    subgraph F6["6. Operación & Métricas"]
-        S6["BPO / Service Mgmt<br/>SLAs p95 + Cuadro de Mando"]
-    end
+    P1["1. Negocio & Dominio<br/>(DDD + Scrum PO)<br/>Lenguaje Ubicuo · DoR Gherkin"]
+    P2["2. Arquitectura & Seguridad<br/>(Ingeniería + Ciberseguridad)<br/>Contratos ADRs · RLS Ley 19.628"]
+    P3["3. Inteligencia Artificial<br/>(AIRMPC)<br/>ZDR · Cojín Humano Botón Dorado"]
+    P4["4. Calidad & Automatización<br/>(DevOps CALMS / DORA)<br/>DoD en CI/CD · Paridad Docker"]
+    P5["5. Continuidad & Cultura<br/>(ITIL / SLAs & Blameless)<br/>Post-Mortem · Power BI Dashboard"]
 
-    F1 --> F2 --> F3 --> F4 --> F5 --> F6
+    P1 --> P2 --> P3 --> P4 --> P5
 ```
 
-### 2.2 Guion de Explicación Verbal del Metamarco:
-> *"No concibo mis certificaciones ni mis conocimientos técnicos como compartimentos estancos; forman parte de un **único sistema de gobierno de proyectos** que aplico desde el día cero:
+### 2.2 Guion de Explicación Verbal del Metamarco (El Guion de 90 Segundos):
+> *"Mi forma de liderar proyectos TI no se basa en recetas aisladas, sino en un marco de trabajo integral que conecta el negocio con la ingeniería de punta a punta:
 > 
-> 1. **Descubrimiento de Negocio (Scrum PO):** Levanto el dolor operacional del cliente y priorizo mediante el marco **MoSCoW**, redactando Historias de Usuario en formato **Gherkin (`Dado-Cuando-Entonces`)** para erradicar cualquier ambigüedad entre el negocio y la fábrica técnica.
-> 2. **Contratos Previos y Arquitectura (Cimientos PUCV / Duoc):** Aplico una estricta **Definition of Ready (DoR)**. Antes de tirar una línea de código, congelo los contratos de interfaz (OpenAPI), los esquemas de base de datos y formalizo las decisiones de arquitectura en **ADRs**.
-> 3. **Seguridad y Privacidad por Diseño (Ciberseguridad LCSPC):** En BDO la información corporativa es sagrada. Toda solución incorpora principio de menor privilegio, aislamiento multi-tenant a nivel de base de datos (Row-Level Security) y cumplimiento de la **Ley 19.628 de Protección de la Vida Privada**.
-> 4. **Inteligencia Artificial Segura (AIRMPC):** Si el proceso involucra IA, no confío en prompts abiertos. Aplico esquemas deterministas estructurados, acuerdos de Cero Retención de Datos (Zero Data Retention) y un cojín humano en caliente (**'Botón Dorado'**) que permite al operador pausar la IA en milisegundos.
-> 5. **Aseguramiento de Calidad en el Delivery (DevOps DAPC):** El código entregado por un proveedor o equipo interno debe superar la **Definition of Done (DoD)** automatizada en el pipeline de CI/CD: 85%+ de pruebas automatizadas, tests de concurrencia y paridad absoluta Dev/Prod mediante contenedores Docker.
-> 6. **Continuidad Operacional y Métricas (BPO / SRE):** El proyecto no termina con el despliegue. Establezco comités operativos de **SLAs (Disponibilidad 99.9%, latencia p95)** y cuadros de mando en tiempo real (puente hacia Power BI) para que la gerencia supervise el rendimiento del proceso."*
+> 1. **Primero, alineación con el negocio (Domain-Driven Design - DDD & Scrum PO):** Me aseguro de hablar el mismo idioma del cliente y delimitar claramente los contextos (*Bounded Contexts*). No acepto especificaciones ambiguas: aplico una estricta *Definition of Ready (DoR)* con criterios en sintaxis Gherkin (`Dado-Cuando-Entonces`) y priorizo con MoSCoW. Si el negocio y los ingenieros no comparten un lenguaje ubicuo, el software nace desalineado y acumula deuda técnica.
+> 2. **Segundo, arquitectura por contratos y seguridad por diseño (Ingeniería & Ciberseguridad):** Antes de tirar código, congelo las interfaces (OpenAPI) y formalizo las decisiones estructurales en ADRs. Entiendo que en operaciones corporativas como las de BDO la información es sagrada: todo diseño exige aislamiento multi-tenant nativo a nivel de base de datos (Row-Level Security) y estricto apego a la **Ley 19.628 de Protección de la Vida Privada**.
+> 3. **Tercero, Inteligencia Artificial segura con soberanía humana (AIRMPC):** No permito prompts abiertos en procesos críticos. Exijo acuerdos de Cero Retención de Datos (Zero Data Retention - ZDR), validación de esquemas JSON estructurados y un cojín humano en caliente (**'Botón Dorado'**) que permite al operador pausar la IA en milisegundos ante excepciones operacionales.
+> 4. **Cuarto, calidad y automatización sin excusas (DevOps bajo pilares CALMS y métricas DORA):** Establezco una *Definition of Done (DoD)* automatizada en pipelines de CI/CD: el código de un proveedor o equipo interno no pasa a producción si no supera pruebas automatizadas de regresión, seguridad y concurrencia bajo paridad absoluta Dev/Prod con Docker. Mido la madurez por métricas DORA (frecuencia de entrega y bajo tiempo de restauración).
+> 5. **Y quinto, continuidad operacional, SLAs y cultura de aprendizaje (ITIL, SRE & Sharing):** Diseño para la resiliencia con SLAs contractuales claros (disponibilidad 99.9%, latencia p95) y visibilidad en tiempo real mediante cuadros de mando (puente a Power BI). Y cuando un incidente ocurre, aplico una cultura sin culpa (*Blameless*): documentamos un **Post-Mortem formal de ingeniería**, extraemos las causas raíz y congelamos las lecciones en ADRs para que la organización jamás vuelva a tropezar con la misma piedra.
+> 
+> **En resumen:** mis certificaciones en Scrum, DevOps, Ciberseguridad y Riesgos de IA no son diplomas para colgar en la pared; son los engranajes con los que garantizo que un proyecto tecnológico entregue valor real, a tiempo y con riesgo operacional controlado."*
 
 ---
 
